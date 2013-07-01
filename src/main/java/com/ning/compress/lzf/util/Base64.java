@@ -467,7 +467,7 @@ public class Base64
      * @return the <var>destination</var> array
      * @since 1.3
      */
-    private static byte[] encode3to4( 
+    public static byte[] encode3to4( 
      byte[] source, int srcOffset, int numSigBytes,
      byte[] destination, int destOffset, int options )
     {
@@ -820,7 +820,7 @@ public class Base64
      * @return the number of decoded bytes converted
      * @since 1.3
      */
-    private static int decode4to3( byte[] source, int srcOffset, byte[] destination, int destOffset, int options )
+    public static int decode4to3( byte[] source, int srcOffset, byte[] destination, int destOffset, int options )
     {
 		byte[] DECODABET = getDecodabet( options ); 
 	
@@ -949,7 +949,22 @@ public class Base64
     }   // end decode
     
     
-	
+	public static int decodePartial(byte[] b4, int nb)
+	{
+	    if (nb == 1)
+	    {
+	        return _STANDARD_DECODABET[b4[0]] << 18;
+	    }
+	    if (nb == 2)
+	    {
+	        return _STANDARD_DECODABET[b4[0]] << 18 | _STANDARD_DECODABET[b4[1]] << 12;
+	    }
+	    if (nb == 3)
+	    {
+	        return _STANDARD_DECODABET[b4[0]] << 18 | _STANDARD_DECODABET[b4[1]] << 12 | _STANDARD_DECODABET[b4[2]] << 6;
+	    }
+	    return 0;
+	}
 	
     /**
      * Decodes data from Base64 notation, automatically
@@ -996,7 +1011,7 @@ public class Base64
         if( bytes != null && bytes.length >= 4 )
         {
             
-            int head = ((int)bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);       
+            int head = (bytes[0] & 0xff) | ((bytes[1] << 8) & 0xff00);       
             if( java.util.zip.GZIPInputStream.GZIP_MAGIC == head ) 
             {
                 java.io.ByteArrayInputStream  bais = null;
@@ -1347,15 +1362,15 @@ public class Base64
      */
     public static class InputStream extends java.io.FilterInputStream
     {
-        private boolean encode;         // Encoding or decoding
+        private final boolean encode;         // Encoding or decoding
         private int     position;       // Current position in the buffer
-        private byte[]  buffer;         // Small buffer holding converted data
-        private int     bufferLength;   // Length of buffer (3 or 4)
+        private final byte[]  buffer;         // Small buffer holding converted data
+        private final int     bufferLength;   // Length of buffer (3 or 4)
         private int     numSigBytes;    // Number of meaningful bytes in the buffer
         private int     lineLength;
-        private boolean breakLines;     // Break lines at less than 80 characters
-		private int     options;        // Record options used to create the stream.
-		private byte[]  decodabet;		// Local copies to avoid extra method calls
+        private final boolean breakLines;     // Break lines at less than 80 characters
+		private final int     options;        // Record options used to create the stream.
+		private final byte[]  decodabet;		// Local copies to avoid extra method calls
         
         
         /**
@@ -1411,6 +1426,7 @@ public class Base64
          * @return next byte
          * @since 1.3
          */
+        @Override
         public int read() throws java.io.IOException 
         { 
             // Do we need to get data?
@@ -1539,6 +1555,7 @@ public class Base64
          * @return bytes read into array or -1 if end of stream is encountered.
          * @since 1.3
          */
+        @Override
         public int read( byte[] dest, int off, int len ) throws java.io.IOException
         {
             int i;
@@ -1581,16 +1598,16 @@ public class Base64
      */
     public static class OutputStream extends java.io.FilterOutputStream
     {
-        private boolean encode;
+        private final boolean encode;
         private int     position;
         private byte[]  buffer;
-        private int     bufferLength;
+        private final int     bufferLength;
         private int     lineLength;
-        private boolean breakLines;
-        private byte[]  b4; // Scratch used in a few places
+        private final boolean breakLines;
+        private final byte[]  b4; // Scratch used in a few places
         private boolean suspendEncoding;
-		private int options; // Record for later
-		private byte[]  decodabet;		// Local copies to avoid extra method calls
+		private final int options; // Record for later
+		private final byte[]  decodabet;		// Local copies to avoid extra method calls
         
         /**
          * Constructs a {@link Base64.OutputStream} in ENCODE mode.
@@ -1652,6 +1669,7 @@ public class Base64
          * @param theByte the byte to write
          * @since 1.3
          */
+        @Override
         public void write(int theByte) throws java.io.IOException
         {
             // Encoding suspended?
@@ -1713,6 +1731,7 @@ public class Base64
          * @param len max number of bytes to read into array
          * @since 1.3
          */
+        @Override
         public void write( byte[] theBytes, int off, int len ) throws java.io.IOException
         {
             // Encoding suspended?
@@ -1758,6 +1777,7 @@ public class Base64
          *
          * @since 1.3
          */
+        @Override
         public void close() throws java.io.IOException
         {
             // 1. Ensure that pending characters are written

@@ -1,6 +1,7 @@
 package com.ning.compress.lzf.impl;
 
 import com.ning.compress.lzf.LZFChunk;
+import com.ning.compress.lzf.util.Base64;
 
 public class UnsafeChunkEncoderLEBase64 extends UnsafeChunkEncoder
 {
@@ -72,109 +73,7 @@ public class UnsafeChunkEncoderLEBase64 extends UnsafeChunkEncoder
         return _handleTail(in, inPos, inEnd+4, out, outPos, literals);
     }
 
-    /** 
-     * Translates a Base64 value to either its 6-bit reconstruction value
-     * or a negative number indicating some other meaning.
-     **/
-    private final static byte[] _STANDARD_DECODABET =
-    {   
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,                 // Decimal  0 -  8
-        -5,-5,                                      // Whitespace: Tab and Linefeed
-        -9,-9,                                      // Decimal 11 - 12
-        -5,                                         // Whitespace: Carriage Return
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 14 - 26
-        -9,-9,-9,-9,-9,                             // Decimal 27 - 31
-        -5,                                         // Whitespace: Space
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,              // Decimal 33 - 42
-        62,                                         // Plus sign at decimal 43
-        -9,-9,-9,                                   // Decimal 44 - 46
-        63,                                         // Slash at decimal 47
-        52,53,54,55,56,57,58,59,60,61,              // Numbers zero through nine
-        -9,-9,-9,                                   // Decimal 58 - 60
-        -1,                                         // Equals sign at decimal 61
-        -9,-9,-9,                                      // Decimal 62 - 64
-        0,1,2,3,4,5,6,7,8,9,10,11,12,13,            // Letters 'A' through 'N'
-        14,15,16,17,18,19,20,21,22,23,24,25,        // Letters 'O' through 'Z'
-        -9,-9,-9,-9,-9,-9,                          // Decimal 91 - 96
-        26,27,28,29,30,31,32,33,34,35,36,37,38,     // Letters 'a' through 'm'
-        39,40,41,42,43,44,45,46,47,48,49,50,51,     // Letters 'n' through 'z'
-        -9,-9,-9,-9                                 // Decimal 123 - 126
-        /*,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 127 - 139
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 140 - 152
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 153 - 165
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 166 - 178
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 179 - 191
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 192 - 204
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 205 - 217
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 218 - 230
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,     // Decimal 231 - 243
-        -9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9,-9         // Decimal 244 - 255 */
-    };
-
     private final static byte EQUALS_SIGN = (byte)'=';
-
-    private static int decode4to3(byte[] source, int srcOffset, byte[] destination, int destOffset)
-    {
-        byte[] DECODABET = _STANDARD_DECODABET; 
-    
-        // Example: Dk==
-        if( source[ srcOffset + 2] == EQUALS_SIGN )
-        {
-            // Two ways to do the same thing. Don't know which way I like best.
-            //int outBuff =   ( ( DECODABET[ source[ srcOffset    ] ] << 24 ) >>>  6 )
-            //              | ( ( DECODABET[ source[ srcOffset + 1] ] << 24 ) >>> 12 );
-            int outBuff =   ( ( DECODABET[ source[ srcOffset    ] ] & 0xFF ) << 18 )
-                          | ( ( DECODABET[ source[ srcOffset + 1] ] & 0xFF ) << 12 );
-            
-            destination[ destOffset ] = (byte)( outBuff >>> 16 );
-            return 1;
-        }
-        
-        // Example: DkL=
-        else if( source[ srcOffset + 3 ] == EQUALS_SIGN )
-        {
-            // Two ways to do the same thing. Don't know which way I like best.
-            //int outBuff =   ( ( DECODABET[ source[ srcOffset     ] ] << 24 ) >>>  6 )
-            //              | ( ( DECODABET[ source[ srcOffset + 1 ] ] << 24 ) >>> 12 )
-            //              | ( ( DECODABET[ source[ srcOffset + 2 ] ] << 24 ) >>> 18 );
-            int outBuff =   ( ( DECODABET[ source[ srcOffset     ] ] & 0xFF ) << 18 )
-                          | ( ( DECODABET[ source[ srcOffset + 1 ] ] & 0xFF ) << 12 )
-                          | ( ( DECODABET[ source[ srcOffset + 2 ] ] & 0xFF ) <<  6 );
-            
-            destination[ destOffset     ] = (byte)( outBuff >>> 16 );
-            destination[ destOffset + 1 ] = (byte)( outBuff >>>  8 );
-            return 2;
-        }
-        
-        // Example: DkLE
-        else
-        {
-            try{
-            // Two ways to do the same thing. Don't know which way I like best.
-            //int outBuff =   ( ( DECODABET[ source[ srcOffset     ] ] << 24 ) >>>  6 )
-            //              | ( ( DECODABET[ source[ srcOffset + 1 ] ] << 24 ) >>> 12 )
-            //              | ( ( DECODABET[ source[ srcOffset + 2 ] ] << 24 ) >>> 18 )
-            //              | ( ( DECODABET[ source[ srcOffset + 3 ] ] << 24 ) >>> 24 );
-            int outBuff =   ( ( DECODABET[ source[ srcOffset     ] ] & 0xFF ) << 18 )
-                          | ( ( DECODABET[ source[ srcOffset + 1 ] ] & 0xFF ) << 12 )
-                          | ( ( DECODABET[ source[ srcOffset + 2 ] ] & 0xFF ) <<  6)
-                          | ( ( DECODABET[ source[ srcOffset + 3 ] ] & 0xFF )      );
-
-            
-            destination[ destOffset     ] = (byte)( outBuff >> 16 );
-            destination[ destOffset + 1 ] = (byte)( outBuff >>  8 );
-            destination[ destOffset + 2 ] = (byte)( outBuff       );
-
-            return 3;
-            }catch( Exception e){
-                System.out.println(""+source[srcOffset]+ ": " + ( DECODABET[ source[ srcOffset     ] ]  ) );
-                System.out.println(""+source[srcOffset+1]+  ": " + ( DECODABET[ source[ srcOffset + 1 ] ]  ) );
-                System.out.println(""+source[srcOffset+2]+  ": " + ( DECODABET[ source[ srcOffset + 2 ] ]  ) );
-                System.out.println(""+source[srcOffset+3]+  ": " + ( DECODABET[ source[ srcOffset + 3 ] ]  ) );
-                return -1;
-            }   // end catch
-        }
-    }   // end decodeToBytes
 
     @Override
     protected int processUncompressible(byte[] input, int inputPtr, int inputLen, byte[] outputBuffer, int outputPos)
@@ -196,7 +95,7 @@ public class UnsafeChunkEncoderLEBase64 extends UnsafeChunkEncoder
             b4[b4Idx++] = b64;
             if (b4Idx > 3)
             {
-                outputPos += decode4to3(b4, 0, outputBuffer, outputPos);
+                outputPos += Base64.decode4to3(b4, 0, outputBuffer, outputPos, 0);
                 b4Idx = 0;
                 if (b64 == EQUALS_SIGN)
                     break;
@@ -205,18 +104,18 @@ public class UnsafeChunkEncoderLEBase64 extends UnsafeChunkEncoder
         // handle trail for 1, 2 or 3 bytes already decoded
         if (b4Idx == 1)
         {
-            int out = _STANDARD_DECODABET[b4[0]] << 18;
+            int out = Base64.decodePartial(b4, 1);
             outputBuffer[outputPos++] = (byte) (out >> 16);
         }
         else if (b4Idx == 2)
         {
-            int out = _STANDARD_DECODABET[b4[0]] << 18 | _STANDARD_DECODABET[b4[1]] << 12;
+            int out = Base64.decodePartial(b4, 2);
             outputBuffer[outputPos++] = (byte) (out >> 16);
             outputBuffer[outputPos++] = (byte) (out >> 8);
         }
         else if (b4Idx == 3)
         {
-            int out = _STANDARD_DECODABET[b4[0]] << 18 | _STANDARD_DECODABET[b4[1]] << 12 | _STANDARD_DECODABET[b4[2]] << 6;
+            int out = Base64.decodePartial(b4, 3);
             outputBuffer[outputPos++] = (byte) (out >> 16);
             outputBuffer[outputPos++] = (byte) (out >> 8);
             outputBuffer[outputPos++] = (byte) out;
@@ -317,10 +216,5 @@ public class UnsafeChunkEncoderLEBase64 extends UnsafeChunkEncoder
     private static boolean isBase64CharInt(int idx)
     {
         return IS_BASE64_CHAR[idx];
-    }
-    
-    private static boolean checkBase64(int seen, boolean fullBase64)
-    {
-        return fullBase64 && isBase64CharInt(seen >> 16) && isBase64CharInt(seen >> 8) && isBase64CharInt(seen & 0xff);
-    }
+    }    
 }
