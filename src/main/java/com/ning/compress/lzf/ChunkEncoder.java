@@ -14,7 +14,6 @@ package com.ning.compress.lzf;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import com.ning.compress.BufferRecycler;
 
 /**
@@ -193,6 +192,11 @@ public abstract class ChunkEncoder
                 return end;
             }
         }
+        return processUncompressible(input, inputPtr, inputLen, outputBuffer, outputPos);
+    }
+    
+    protected int processUncompressible(byte[] input, int inputPtr, int inputLen, byte[] outputBuffer, int outputPos)
+    {
         // Otherwise append as non-compressed chunk instead (length + 5):
         return LZFChunk.appendNonCompressed(input, inputPtr, inputLen, outputBuffer, outputPos);
     }

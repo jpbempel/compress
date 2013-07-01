@@ -11,7 +11,8 @@
 
 package com.ning.compress.lzf;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Helper class used to store LZF encoded segments (compressed and non-compressed)
@@ -45,6 +46,7 @@ public class LZFChunk
 
     public final static int BLOCK_TYPE_NON_COMPRESSED = 0;
     public final static int BLOCK_TYPE_COMPRESSED = 1;
+    public final static int BLOCK_TYPE_COMRPESSED_BASE64 = 2;
 
     
     protected final byte[] _data;
@@ -74,6 +76,18 @@ public class LZFChunk
         headerBuffer[offset++] = BYTE_Z;
         headerBuffer[offset++] = BYTE_V;
         headerBuffer[offset++] = BLOCK_TYPE_COMPRESSED;
+        headerBuffer[offset++] = (byte) (encLen >> 8);
+        headerBuffer[offset++] = (byte) encLen;
+        headerBuffer[offset++] = (byte) (origLen >> 8);
+        headerBuffer[offset++] = (byte) origLen;
+        return offset;
+    }
+
+    public static int appendCompressedBase64Header(int origLen, int encLen, byte[] headerBuffer, int offset)
+    {
+        headerBuffer[offset++] = BYTE_Z;
+        headerBuffer[offset++] = BYTE_V;
+        headerBuffer[offset++] = BLOCK_TYPE_COMRPESSED_BASE64;
         headerBuffer[offset++] = (byte) (encLen >> 8);
         headerBuffer[offset++] = (byte) encLen;
         headerBuffer[offset++] = (byte) (origLen >> 8);

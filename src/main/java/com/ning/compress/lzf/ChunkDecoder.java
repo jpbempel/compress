@@ -103,7 +103,7 @@ public abstract class ChunkDecoder
                     _reportArrayOverflow(targetBuffer, outPtr, uncompLen);
                 }
                 inPtr += 2;
-                decodeChunk(sourceBuffer, inPtr, targetBuffer, outPtr, outPtr+uncompLen);
+                decodeChunk(type, sourceBuffer, inPtr, targetBuffer, outPtr, outPtr+uncompLen);
                 outPtr += uncompLen;
             }
             inPtr += len;
@@ -130,6 +130,11 @@ public abstract class ChunkDecoder
      */
     public abstract void decodeChunk(byte[] in, int inPos, byte[] out, int outPos, int outEnd)
         throws LZFException;
+
+    public void decodeChunk(int type, byte[] in, int inPos, byte[] out, int outPos, int outEnd) throws LZFException
+    {
+        decodeChunk(in, inPos, out, outPos, outEnd);
+    }
 
     /**
      * @return If positive number, number of bytes skipped; if -1, end-of-stream was
@@ -171,7 +176,7 @@ public abstract class ChunkDecoder
                 if (data[ptr] != LZFChunk.BYTE_Z || data[ptr+1] != LZFChunk.BYTE_V) {
                     throw new LZFException("Corrupt input data, block #"+blockNr+" (at offset "+ptr+"): did not start with 'ZV' signature bytes");
                 }
-                int type = (int) data[ptr+2];
+                int type = data[ptr+2];
                 int blockLen = uint16(data, ptr+3);
                 if (type == LZFChunk.BLOCK_TYPE_NON_COMPRESSED) { // uncompressed
                     ptr += 5;

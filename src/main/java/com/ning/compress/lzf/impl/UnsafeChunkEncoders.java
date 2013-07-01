@@ -34,9 +34,17 @@ public final class UnsafeChunkEncoders
     }
 
     public static UnsafeChunkEncoder createNonAllocatingEncoder(int totalLength) {
+        return createNonAllocatingEncoder(totalLength, false);
+    }
+
+    public static UnsafeChunkEncoder createNonAllocatingEncoder(int totalLength, boolean base64Support) {
         if (LITTLE_ENDIAN) {
+            if (base64Support) {
+                return new UnsafeChunkEncoderLEBase64(totalLength, false);
+            } 
             return new UnsafeChunkEncoderLE(totalLength, false);
         }
+        // TODO base64 support for BE
         return new UnsafeChunkEncoderBE(totalLength, false);
     }
 }

@@ -3,10 +3,10 @@ package com.ning.compress.lzf.impl;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-
 import sun.misc.Unsafe;
-
-import com.ning.compress.lzf.*;
+import com.ning.compress.lzf.ChunkDecoder;
+import com.ning.compress.lzf.LZFChunk;
+import com.ning.compress.lzf.LZFException;
 
 /**
  * Highly optimized {@link ChunkDecoder} implementation that uses

@@ -1,12 +1,22 @@
 package com.ning.compress.lzf;
 
-import java.io.*;
-
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
 import com.ning.compress.lzf.impl.UnsafeChunkDecoder;
+import com.ning.compress.lzf.impl.UnsafeChunkDecoderBase64;
 import com.ning.compress.lzf.impl.VanillaChunkDecoder;
+import com.ning.compress.lzf.util.Base64;
 
 public class TestLZFRoundTrip
 {
@@ -32,6 +42,14 @@ public class TestLZFRoundTrip
     {
         _testUsingBlock(new UnsafeChunkDecoder());
         _testUsingReader(new UnsafeChunkDecoder());
+    }
+    
+    @Test
+    public void testUnsafeCodecBase64() throws IOException
+    {
+        _testUsingBlock(new UnsafeChunkDecoderBase64());
+        _testUsingBlockBase64(new UnsafeChunkDecoderBase64());
+        _testUsingReader(new UnsafeChunkDecoderBase64());
     }
 
     @Test 
@@ -104,6 +122,20 @@ public class TestLZFRoundTrip
             Assert.assertEquals(decoded.length,  data.length);
             Assert.assertEquals(decoded,  data,
             		String.format("File '%s', %d->%d bytes", name, data.length, lzf.length));
+        }
+    }
+
+    protected void _testUsingBlockBase64(ChunkDecoder decoder) throws IOException
+    {
+        for (String name : FILES) {
+            byte[] data = readResource(name);
+            byte[] inputBase64 = Base64.encodeBytes(data, Base64.DONT_BREAK_LINES).getBytes();
+            byte[] lzf = LZFEncoder.encode(inputBase64);
+            byte[] decoded = decoder.decode(lzf);
+
+            Assert.assertEquals(decoded.length,  inputBase64.length);
+            Assert.assertEquals(decoded,  inputBase64,
+                    String.format("File '%s', %d->%d bytes", name, inputBase64.length, inputBase64.length));
         }
     }
 

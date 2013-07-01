@@ -1,7 +1,9 @@
 package com.ning.compress.lzf.util;
 
-import com.ning.compress.lzf.*;
-import com.ning.compress.lzf.impl.*;
+import com.ning.compress.lzf.ChunkEncoder;
+import com.ning.compress.lzf.LZFChunk;
+import com.ning.compress.lzf.impl.UnsafeChunkEncoders;
+import com.ning.compress.lzf.impl.VanillaChunkEncoder;
 
 /**
  * Simple helper class used for loading
@@ -62,6 +64,16 @@ public class ChunkEncoderFactory
                     +e.getMessage(), e);
         }
     }
+    
+    public static ChunkEncoder optimalNonAllocatingInstance(int totalLength, boolean base64Support)
+    {
+        try {
+            return UnsafeChunkEncoders.createNonAllocatingEncoder(totalLength, base64Support);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to load optimal ChunkEncoder instance ("+e.getClass().getName()+"): "
+                    +e.getMessage(), e);
+        }
+    } 
 
     /**
      * Convenience method, equivalent to:

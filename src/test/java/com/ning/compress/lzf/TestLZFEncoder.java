@@ -1,11 +1,10 @@
 package com.ning.compress.lzf;
 
 import java.util.Arrays;
-
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
 import com.ning.compress.BaseForTests;
+import com.ning.compress.BufferRecycler;
 import com.ning.compress.lzf.util.ChunkEncoderFactory;
 
 public class TestLZFEncoder extends BaseForTests
@@ -26,6 +25,7 @@ public class TestLZFEncoder extends BaseForTests
         byte[] source = constructFluff(55000);
         _testCompressableChunksSingle(source, ChunkEncoderFactory.safeInstance());
         _testCompressableChunksSingle(source, ChunkEncoderFactory.optimalInstance());
+        _testCompressableChunksSingle(source, ChunkEncoderFactory.optimalNonAllocatingInstance(0, true));
     }
 
     private void _testCompressableChunksSingle(byte[] source, ChunkEncoder encoder) throws Exception
@@ -53,6 +53,10 @@ public class TestLZFEncoder extends BaseForTests
         byte[] source = constructFluff(4 * 0xFFFF + 4000);
         _testCompressableChunksMulti(source, ChunkEncoderFactory.safeInstance());
         _testCompressableChunksMulti(source, ChunkEncoderFactory.optimalInstance());
+        
+        ChunkEncoder enc = ChunkEncoderFactory.optimalNonAllocatingInstance(0, true);
+        enc._encodeBuffer = BufferRecycler.instance().allocEncodingBuffer(source.length);
+        _testCompressableChunksMulti(source, enc);
     }
     
     private void _testCompressableChunksMulti(byte[] source, ChunkEncoder encoder) throws Exception
@@ -79,6 +83,9 @@ public class TestLZFEncoder extends BaseForTests
         byte[] source = constructUncompressable(4000);
         _testNonCompressableChunksSingle(source, ChunkEncoderFactory.safeInstance());
         _testNonCompressableChunksSingle(source, ChunkEncoderFactory.optimalInstance());
+        ChunkEncoder enc = ChunkEncoderFactory.optimalNonAllocatingInstance(0, true);
+        enc._encodeBuffer = BufferRecycler.instance().allocEncodingBuffer(source.length);
+        _testNonCompressableChunksSingle(source, enc);
     }
     
     private void _testNonCompressableChunksSingle(byte[] source, ChunkEncoder encoder) throws Exception

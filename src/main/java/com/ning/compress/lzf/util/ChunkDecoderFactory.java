@@ -1,8 +1,8 @@
 package com.ning.compress.lzf.util;
 
 import com.ning.compress.lzf.ChunkDecoder;
+import com.ning.compress.lzf.impl.UnsafeChunkDecoderBase64;
 import com.ning.compress.lzf.impl.VanillaChunkDecoder;
-import com.ning.compress.lzf.impl.UnsafeChunkDecoder;
 
 /**
  * Simple helper class used for loading
@@ -21,7 +21,7 @@ public class ChunkDecoderFactory
         Class<?> impl = null;
         try {
             // first, try loading optimal one, which uses Sun JDK Unsafe...
-            impl = (Class<?>) Class.forName(UnsafeChunkDecoder.class.getName());
+            impl = Class.forName(UnsafeChunkDecoderBase64.class.getName());
         } catch (Throwable t) { }
         if (impl == null) {
             impl = VanillaChunkDecoder.class;

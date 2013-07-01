@@ -6,27 +6,32 @@
         <artifactId>oss-parent</artifactId>
         <version>5</version>
     </parent>
-    <groupId>com.ning</groupId>
+    <groupId>com.ullink.ultools</groupId>
     <artifactId>compress-lzf</artifactId>
-    <name>Ning-compress-LZF</name>
+    <name>Ullink-compress-LZF</name>
     <version>0.9.9-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <description>
-Compression codec for LZF encoding for particularly encoding/decoding, with reasonable compression.
+    <description>Compression codec for LZF encoding for particularly encoding/decoding, with reasonable compression.
 Compressor is basic Lempel-Ziv codec, without Huffman (deflate/gzip) or statistical post-encoding.
-See "http://oldhome.schmorp.de/marc/liblzf.html" for more on original LZF package.
-    </description>    
+See &quot;http://oldhome.schmorp.de/marc/liblzf.html&quot; for more on original LZF package.
+Forked from http://github.com/ningl/compress
+Added support for Base64
+Optimize corner case where Base64 stream cannot be compressed.
+usually if base64 stream is a already compressed LZF cannot re-compress it. 
+By decoding base64 we can get 33% improvement in compress ratio.
+Added a new flag for comrpessed-base64.
+</description>    
     <prerequisites>
         <maven>2.2.1</maven>
     </prerequisites>
-    <url>http://github.com/ning/compress</url>
+    <url>http://github.com/jpbempel/compress</url>
     <scm>
-        <connection>scm:git:git@github.com:ning/compress.git</connection>
-        <developerConnection>scm:git:git@github.com:ning/compress.git</developerConnection>
-        <url>http://github.com/ning/compress</url>
+        <connection>scm:git:git@github.com:jpbempel/compress.git</connection>
+        <developerConnection>scm:git:git@github.com:jpbempel/compress.git</developerConnection>
+        <url>http://github.com/jpbempel/compress</url>
     </scm>
     <issueManagement>
-        <url>http://github.com/ning/compress/issues</url>
+        <url>http://github.com/jpbempel/compress/issues</url>
     </issueManagement>
 
     <properties>
@@ -199,5 +204,9 @@ com.ning.compress.lzf.util
             </build>
         </profile>
     </profiles>
+    <organization>
+    	<name>Ullink</name>
+    	<url>http://www.ullink.com</url>
+    </organization>
 </project>
 
